@@ -1,572 +1,485 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SpaceX Investment Bank (SIB)</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        /* --- DESIGN SYSTEM & SYSTEM THEMING --- */
-        :root {
-            --bg-space: #06070d;
-            --bg-surface: #0b0d19;
-            --text-light: #ffffff;
-            --text-muted: #8a99ad;
-            --accent-blue: #005288;
-            --accent-glow: #00b4d8;
-            --accent-green: #39b54a;
-            --accent-red: #ff4d4d;
-            --card-bg: rgba(255, 255, 255, 0.04);
-            --border-glow: rgba(0, 180, 216, 0.2);
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BOA Secure Banking</title>
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        }
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif}
+body{background:#081220;color:#fff}
 
-        body {
-            background-color: var(--bg-space);
-            color: var(--text-light);
-            overflow-x: hidden;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin: 0;
-        }
+#splash,#login,#processing{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
+flex-direction:column;
+background:linear-gradient(135deg,#02152c,#11407b);
+}
 
-        /* --- STAGE SCREEN CONTROL GRAPHICS --- */
-        .screen {
-            display: none; /* Explicitly hides all stages by default */
-            height: 100vh;
-            width: 100vw;
-            position: absolute;
-            top: 0;
-            left: 0;
-            flex-direction: column;
-        }
+#login,#processing,#dashboard{
+display:none;
+}
 
-        .active {
-            display: flex !important; /* Overrides hide property when activated by the script clock */
-        }
+.logo{
+width:130px;
+height:130px;
+border-radius:20px;
+animation:float 2s infinite;
+}
 
-        /* --- STAGE 1: SIB LOADING COUNTDOWN VIEW --- */
-        #splash-screen {
-            background: radial-gradient(circle at center, #111625 0%, #06070d 100%);
-            justify-content: center;
-            align-items: center;
-        }
+@keyframes float{
+0%{transform:translateY(0)}
+50%{transform:translateY(-10px)}
+100%{transform:translateY(0)}
+}
 
-        .logo-container {
-            text-align: center;
-            animation: pulse 2s infinite ease-in-out;
-        }
+.card{
+width:360px;
+max-width:95%;
+background:#10233d;
+padding:30px;
+border-radius:20px;
+box-shadow:0 0 20px rgba(0,0,0,.4);
+}
 
-        .logo-text {
-            font-size: 4.5rem;
-            font-weight: 900;
-            letter-spacing: 10px;
-            background: linear-gradient(45deg, #ffffff, var(--accent-glow));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
+.card h2{
+text-align:center;
+margin:15px 0;
+}
 
-        .logo-sub {
-            font-size: 1rem;
-            letter-spacing: 6px;
-            color: var(--text-muted);
-            margin-top: 5px;
-            text-transform: uppercase;
-        }
+input,select{
+width:100%;
+padding:14px;
+margin:10px 0;
+border:none;
+border-radius:10px;
+background:#183457;
+color:#fff;
+}
 
-        .loader-timer {
-            margin-top: 40px;
-            font-size: 0.85rem;
-            color: var(--accent-glow);
-            font-family: monospace;
-            letter-spacing: 1px;
-        }
+button{
+width:100%;
+padding:15px;
+margin-top:15px;
+border:none;
+border-radius:10px;
+font-size:16px;
+background:#0066ff;
+color:#fff;
+cursor:pointer;
+}
 
-        /* --- STAGE 2: ACCESS TERMINAL LOGIN VIEW --- */
-        #login-screen {
-            justify-content: center;
-            align-items: center;
-            background: #06070d;
-        }
+button:hover{
+background:#0050cc;
+}
 
-        .login-card {
-            background: var(--bg-surface);
-            padding: 40px;
-            border-radius: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            width: 90%;
-            max-width: 420px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
-        }
+#error{
+display:none;
+background:#b91c1c;
+padding:10px;
+border-radius:8px;
+margin-top:10px;
+text-align:center;
+}
 
-        .login-card h2 {
-            margin-bottom: 8px;
-            font-weight: 500;
-            letter-spacing: 1px;
-        }
+#dashboard{
+padding:20px;
+}
 
-        .input-group {
-            margin-bottom: 20px;
-        }
+.header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+background:#10233d;
+padding:15px;
+border-radius:15px;
+margin-bottom:20px;
+}
 
-        .input-group label {
-            display: block;
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            margin-bottom: 8px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
+.balance{
+background:linear-gradient(135deg,#005eff,#00a2ff);
+padding:25px;
+border-radius:20px;
+margin-bottom:20px;
+}
 
-        .input-group input {
-            width: 100%;
-            padding: 14px;
-            background: rgba(0, 0, 0, 0.4);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 8px;
-            color: white;
-            font-size: 1rem;
-            outline: none;
-            transition: 0.3s;
-        }
+.grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+gap:15px;
+}
 
-        .input-group input:focus {
-            border-color: var(--accent-glow);
-            box-shadow: 0 0 12px var(--border-glow);
-        }
+.box{
+background:#10233d;
+padding:20px;
+border-radius:15px;
+}
 
-        .btn {
-            width: 100%;
-            padding: 14px;
-            background: var(--accent-blue);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.3s;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
+table{
+width:100%;
+margin-top:20px;
+border-collapse:collapse;
+}
 
-        .btn:hover {
-            background: #006aa3;
-            box-shadow: 0 0 20px rgba(0, 82, 136, 0.6);
-        }
+th,td{
+padding:12px;
+border-bottom:1px solid #333;
+text-align:left;
+}
 
-        .error-msg {
-            color: var(--accent-red);
-            font-size: 0.85rem;
-            margin-top: 15px;
-            text-align: center;
-            display: none;
-        }
+.progress{
+width:90%;
+height:20px;
+background:#16314d;
+border-radius:20px;
+overflow:hidden;
+margin:20px 0;
+}
 
-        /* --- STAGE 3: THE MAIN CORE BALANCES DASHBOARD (RESPONSIVE) --- */
-        #dashboard-screen {
-            flex-direction: row;
-        }
+.bar{
+width:30%;
+height:100%;
+background:#00bfff;
+}
+</style>
 
-        sidebar {
-            width: 260px;
-            background: var(--bg-surface);
-            border-right: 1px solid rgba(255, 255, 255, 0.08);
-            padding: 30px 20px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            flex-shrink: 0;
-        }
-
-        .nav-links {
-            list-style: none;
-            margin-top: 40px;
-        }
-
-        .nav-links li {
-            padding: 14px 16px;
-            border-radius: 8px;
-            margin-bottom: 8px;
-            cursor: pointer;
-            color: var(--text-muted);
-            transition: 0.2s;
-            font-weight: 500;
-        }
-
-        .nav-links li.active-nav {
-            background: var(--card-bg);
-            color: white;
-            border-left: 4px solid var(--accent-glow);
-        }
-
-        main {
-            flex-grow: 1;
-            padding: 40px;
-            overflow-y: auto;
-            background: #080a14;
-            display: block;
-            text-align: left;
-        }
-
-        .dash-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
-            gap: 20px;
-        }
-
-        /* Balance Presentation Matrix */
-        .main-balance-card {
-            background: linear-gradient(135deg, #0b112c 0%, #0b0d19 100%);
-            border: 1px solid rgba(0, 180, 216, 0.3);
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-            margin-bottom: 30px;
-        }
-
-        .main-balance-card h3 {
-            font-size: 0.9rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            margin-bottom: 15px;
-        }
-
-        .total-balance-display {
-            font-size: 3.8rem;
-            font-weight: 800;
-            letter-spacing: -1px;
-            color: #ffffff;
-        }
-
-        .currency-badge {
-            font-size: 1.5rem;
-            color: var(--accent-glow);
-            vertical-align: middle;
-            margin-left: 10px;
-        }
-
-        /* Adaptive Split Panels */
-        .dash-split {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .card {
-            background: var(--bg-surface);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: 16px;
-            padding: 24px;
-        }
-
-        .card h4 {
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--text-muted);
-            margin-bottom: 15px;
-        }
-
-        /* Forms Configuration */
-        .interactive-form input {
-            width: 100%;
-            padding: 12px;
-            background: rgba(0,0,0,0.3);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 8px;
-            color: white;
-            margin-bottom: 15px;
-            outline: none;
-        }
-        
-        .interactive-form input:focus {
-            border-color: var(--accent-glow);
-        }
-
-        /* Tables Engineering */
-        .table-responsive {
-            width: 100%;
-            overflow-x: auto;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            text-align: left;
-            min-width: 450px;
-        }
-
-        th, td {
-            padding: 14px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        th {
-            color: var(--text-muted);
-            font-size: 0.75rem;
-            text-transform: uppercase;
-        }
-
-        /* Header Navigation for Mobile Screens */
-        .mobile-header {
-            display: none;
-            width: 100%;
-            background: var(--bg-surface);
-            padding: 15px 20px;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-        }
-
-        /* --- MOBILE LAYOUT TRANSLATIONS --- */
-        @media (max-width: 768px) {
-            #dashboard-screen { flex-direction: column; }
-            sidebar { display: none; }
-            .mobile-header { display: flex; }
-            main { padding: 20px; }
-            .total-balance-display { font-size: 2.3rem; }
-            .dash-split { grid-template-columns: 1fr; }
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); opacity: 0.9; }
-            50% { transform: scale(1.02); opacity: 1; }
-        }
-    </style>
 </head>
 <body>
 
-    <div id="splash-screen" class="screen active">
-        <div class="logo-container">
-            <div class="logo-text">SIB</div>
-            <div class="logo-sub">SpaceX Investment Bank</div>
-        </div>
-        <div class="loader-timer">ESTABLISHING SECURE CONNECTION... <span id="countdown">5</span>s</div>
-    </div>
+<!-- Splash -->
 
-    <div id="login-screen" class="screen">
-        <div class="login-card">
-            <h2 style="font-size: 1.5rem;">System Authentication</h2>
-            <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 24px;">SIB Quantum Ledger Node Access</p>
-            
-            <form id="login-form" onsubmit="handleLogin(event)">
-                <div class="input-group">
-                    <label for="username">Username</label>
-                    <input type="text" id="username" required autocomplete="off">
-                </div>
-                <div class="input-group">
-                    <label for="password">Password</label>
-                    <input type="password" id="password" required>
-                </div>
-                <button type="submit" class="btn">Authorize Terminal Connection</button>
-                <div id="error-message" class="error-msg">❌ Security Access Denied: Invalid Credentials</div>
-            </form>
-        </div>
-    </div>
+<div id="splash">
 
-    <div id="dashboard-screen" class="screen">
-        <div class="mobile-header">
-            <div style="font-weight: 800; letter-spacing: 2px;">SIB SYSTEM</div>
-            <div style="color: var(--accent-red); font-size: 0.85rem; cursor: pointer;" onclick="location.reload()">Disconnect</div>
-        </div>
+<img src="fb1.png" class="logo">
 
-        <sidebar>
-            <div>
-                <div style="font-weight: 900; letter-spacing: 3px; font-size: 1.4rem; color: #fff;">SIB</div>
-                <div style="font-size: 0.65rem; color: var(--accent-glow); letter-spacing: 1px; text-transform: uppercase;">Investment Management</div>
-                <ul class="nav-links">
-                    <li class="active-nav">Account Control</li>
-                    <li>Capital Remittance</li>
-                    <li>Ledger Inquiries</li>
-                </ul>
-            </div>
-            <div style="color: var(--text-muted); font-size: 0.85rem; cursor: pointer;" onclick="location.reload()">
-                🔒 Terminate Session
-            </div>
-        </sidebar>
+<h1 style="margin-top:20px">BOA Secure Banking</h1>
 
-        <main>
-            <div class="dash-header">
-                <div>
-                    <h1 style="font-weight: 300; font-size: 1.8rem;">Welcome back, <span id="user-display" style="font-weight: 600; color: var(--accent-glow);">Explorer</span></h1>
-                    <p style="color: var(--text-muted); font-size: 0.85rem;">Secure Route Status: Active Node // Orbital Location Cleared</p>
-                </div>
-            </div>
+<p>Loading Secure Login...</p>
 
-            <div class="main-balance-card">
-                <h3>Total Available Portfolio Liquidity Assets</h3>
-                <div class="total-balance-display">
-                    €<span id="balance-amount">20,000,000.00</span><span class="currency-badge">EUR</span>
-                </div>
-            </div>
+</div>
 
-            <div class="dash-split">
-                <div class="card">
-                    <h4>Historical System Ledger Postings</h4>
-                    <div class="table-responsive">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Posting Entry Description</th>
-                                    <th>Status Matrix</th>
-                                    <th>Value Shift</th>
-                                </tr>
-                            </thead>
-                            <tbody id="ledger-entries">
-                                <tr>
-                                    <td>Initial Sovereign Capital Asset Allocation Vault</td>
-                                    <td style="color: var(--accent-green);">Settled</td>
-                                    <td style="color: var(--accent-green); font-weight: 600;">+€20,000,000.00</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+<!-- Login -->
 
-                <div class="card">
-                    <h4>Outbound Capital Wire</h4>
-                    <form class="interactive-form" onsubmit="executeTransfer(event)">
-                        <input type="text" id="transfer-dest" placeholder="Target Destination IBAN / Routing ID" required>
-                        <input type="number" id="transfer-amount" placeholder="Amount (€)" min="1" step="any" required>
-                        <button type="submit" class="btn" style="padding: 10px; font-size: 0.85rem;">Broadcast Asset Shift</button>
-                    </form>
-                </div>
-            </div>
+<div id="login">
 
-            <div class="card" style="margin-top: 10px;">
-                <h4>Asset Value Yield Progression</h4>
-                <div style="position: relative; height: 180px; width: 100%;">
-                    <canvas id="yieldChart"></canvas>
-                </div>
-            </div>
-        </main>
-    </div>
+<div class="card">
 
-    <script>
-        // GATEWAY ASSIGNMENTS FROM PROMPT INSTRUCTIONS
-        const SECURE_USER = "Micheal";
-        const SECURE_PASS = "Tapner";
-        
-        let secondsLeft = 5; 
-        let globalBalance = 20000000.00;
+<center>
 
-        const countdownElement = document.getElementById('countdown');
-        const splashScreen = document.getElementById('splash-screen');
-        const loginScreen = document.getElementById('login-screen');
-        const dashboardScreen = document.getElementById('dashboard-screen');
+<img src="fb1.png" class="logo" style="width:90px;height:90px">
 
-        countdownElement.textContent = secondsLeft;
+</center>
 
-        // 1. Splash Screen Timer Sequence Engine
-        const timer = setInterval(() => {
-            secondsLeft--;
-            countdownElement.textContent = secondsLeft;
+<h2>Login</h2>
 
-            if (secondsLeft <= 0) {
-                clearInterval(timer);
-                splashScreen.classList.remove('active'); // Drops the logo overlay screen out of layout view
-                loginScreen.classList.add('active');    // Pulls up the Login Input fields grid layout
-            }
-        }, 1000);
+<input id="user" placeholder="Username">
 
-        // 2. Security Login Module
-        function handleLogin(event) {
-            event.preventDefault(); 
-            
-            const userInput = document.getElementById('username').value;
-            const passInput = document.getElementById('password').value;
-            const errorMsg = document.getElementById('error-message');
-            const userDisplay = document.getElementById('user-display');
+<input id="pass" type="password" placeholder="Password">
 
-            // Validates against prompt constraints
-            if (userInput === SECURE_USER && passInput === SECURE_PASS) {
-                userDisplay.textContent = "Micheal J Tapner"; // Maps user display string explicitly
-                loginScreen.classList.remove('active');
-                dashboardScreen.classList.add('active');       // Opens dashboard interface space
-                renderAnalyticsChart();                         // Builds the trends tracking script canvas
-            } else {
-                errorMsg.style.display = 'block';
-                setTimeout(() => { errorMsg.style.display = 'none'; }, 4000);
-            }
-        }
+<label>
 
-        // 3. Dynamic Balance Modifier Wire Simulator
-        function executeTransfer(event) {
-            event.preventDefault();
-            
-            const destination = document.getElementById('transfer-dest').value;
-            const amount = parseFloat(document.getElementById('transfer-amount').value);
+<input type="checkbox" onclick="showPass()">
 
-            if (amount > globalBalance) { 
-                alert("🚨 Transaction Aborted: Insufficient liquidity limits in ledger node."); 
-                return; 
-            }
+Show Password
 
-            globalBalance -= amount;
-            document.getElementById('balance-amount').textContent = globalBalance.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+</label>
 
-            // Creates and pushes dynamic data tables columns
-            const ledgerBody = document.getElementById('ledger-entries');
-            const newRow = document.createElement('tr');
-            
-            newRow.innerHTML = `
-                <td>Electronic Capital Wire Remittance to [${destination}]</td>
-                <td style="color: var(--accent-glow);">Confirmed</td>
-                <td style="color: var(--accent-red); font-weight: 600;">-€${amount.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
-            `;
-            
-            ledgerBody.insertBefore(newRow, ledgerBody.firstChild);
-            document.getElementById('transfer-amount').value = '';
-            document.getElementById('transfer-dest').value = '';
-        }
+<div id="error">
 
-        // 4. Data Chart Rendering Logic
-        function renderAnalyticsChart() {
-            const ctx = document.getElementById('yieldChart').getContext('2d');
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Current'],
-                    datasets: [{
-                        data: [12000000, 14500000, 13100000, 18400000, 19200000, 20000000],
-                        borderColor: '#00b4d8',
-                        backgroundColor: 'rgba(0, 180, 216, 0.03)',
-                        borderWidth: 2,
-                        fill: true,
-                        tension: 0.35
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        y: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#8a99ad', fontSize: 10 } },
-                        x: { grid: { display: false }, ticks: { color: '#8a99ad', fontSize: 10 } }
-                    }
-                }
-            });
-        }
-    </script>
+Invalid Username or Password
+
+</div>
+
+<button onclick="login()">
+
+LOGIN
+
+</button>
+
+</div>
+
+</div>
+
+<!-- Dashboard -->
+
+<div id="dashboard">
+
+<div class="header">
+
+<div>
+
+<h2>Welcome James 👋</h2>
+
+<p>Bank of America Secure Dashboard</p>
+
+</div>
+
+<div>
+
+<h3>$300,000,000.00</h3>
+
+</div>
+
+</div>
+
+<div class="balance">
+
+<h3>Available Balance</h3>
+
+<h1>$300,000,000.00</h1>
+
+<p>Visa •••• 2486</p>
+
+</div>
+
+<div class="grid">
+
+<div class="box">
+
+<h3>Income</h3>
+
+<h2>$300,000</h2>
+
+</div>
+
+<div class="box">
+
+<h3>Expenses</h3>
+
+<h2>$82,000</h2>
+
+</div>
+
+<div class="box">
+
+<h3>Rewards</h3>
+
+<h2>90,840</h2>
+
+</div>
+
+<div class="box">
+
+<h3>Transfers</h3>
+
+<h2>245</h2>
+
+</div>
+
+</div>
+
+<h2 style="margin-top:25px">
+
+Recent Transactions
+
+</h2>
+
+<table>
+
+<tr>
+
+<th>Name</th>
+
+<th>Amount</th>
+
+</tr>
+
+<tr>
+
+<td>Salary Deposit</td>
+
+<td style="color:lime">
+
++$502,000
+
+</td>
+
+</tr>
+
+<tr>
+
+<td>Amazon Purchase</td>
+
+<td style="color:red">
+
+-$34,000
+
+</td>
+
+</tr>
+
+<tr>
+
+<td>ATM Withdrawal</td>
+
+<td style="color:red">
+
+-$50,000
+
+</td>
+
+</tr>
+
+<tr>
+
+<td>Investment Profit</td>
+
+<td style="color:lime">
+
++$150,000
+
+</td>
+
+</tr>
+
+</table>
+
+<div class="box" style="margin-top:25px">
+
+<h2>
+
+Withdraw Funds
+
+</h2>
+
+<input placeholder="Recipient Account">
+
+<input id="amount" type="number" placeholder="Amount">
+
+<select>
+
+<option>Bank Transfer</option>
+
+<option>PayPal</option>
+
+<option>Crypto Wallet</option>
+
+<option>Western Union</option>
+
+</select>
+
+<button onclick="withdrawMoney()">
+
+Withdraw Now
+
+</button>
+
+</div>
+
+</div>
+
+<!-- Processing Screen -->
+
+<div id="processing">
+
+<img src="fb1.png" class="logo">
+
+<h2 style="margin-top:20px">
+
+Processing Withdrawal...
+
+</h2>
+
+<p>
+
+Please wait while we verify your request.
+
+</p>
+
+<div class="progress">
+
+<div class="bar"></div>
+
+</div>
+
+<h1>30%</h1>
+
+<p>
+
+Estimated Time
+
+</p>
+
+<h2>
+
+2 Months • 12 Days • 13 Hours
+
+</h2>
+
+<p style="margin-top:20px">
+
+Reference: BOA-2026-458921
+
+</p>
+
+</div>
+<script>
+
+const splash=document.getElementById("splash");
+const loginPage=document.getElementById("login");
+const dashboard=document.getElementById("dashboard");
+const processing=document.getElementById("processing");
+
+setTimeout(function(){
+
+splash.style.display="none";
+loginPage.style.display="flex";
+
+},2000);
+
+function showPass(){
+
+const p=document.getElementById("pass");
+
+p.type=(p.type==="password")?"text":"password";
+
+}
+
+function login(){
+
+const u=document.getElementById("user").value.trim();
+const p=document.getElementById("pass").value.trim();
+
+if(u==="James" && p==="Bergeron127"){
+
+loginPage.style.display="none";
+dashboard.style.display="block";
+
+}else{
+
+document.getElementById("error").style.display="block";
+
+}
+
+}
+
+function withdrawMoney(){
+
+const amount=document.getElementById("amount").value;
+
+if(amount===""){
+
+alert("Please enter an amount.");
+
+return;
+
+}
+
+dashboard.style.display="none";
+processing.style.display="flex";
+
+}
+
+</script>
+
 </body>
 </html>
-
-
-
 
 
 
